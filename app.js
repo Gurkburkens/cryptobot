@@ -69,18 +69,20 @@ function beräknaADX(p, n = 14) {
   return parseFloat((100 * Math.abs(dip - din) / (dip + din || 1)).toFixed(1));
 }
 
-// ── CoinGecko API (via CORS-proxy) ─────────────────────
-
 async function hämtaHistorikDaglig(coinId, dagar) {
-  // CoinGecko: interval=daily fungerar bara upp till 90 dagar
-  // För längre perioder tar vi bort interval så får vi automatiska dagspunkter
-  const url = dagar <= 90
-    ? `${COINGECKO}/coins/${coinId}/market_chart?vs_currency=usd&days=${dagar}&interval=daily`
-    : `${COINGECKO}/coins/${coinId}/market_chart?vs_currency=usd&days=${dagar}`;
-
-  const res = await fetch(proxyUrl(url));
-  if (!res.ok) throw new Error(`Kunde inte hämta historik: ${res.status}`);
-  const data = await res.json();
+  const par    = coinId === 'bitcoin' ? 'XBTUSD' : 'ETHUSD';
+  const sedan  = Math.floor((Date.now() - dagar * 86400000) / 1000);
+  const url    = `https://api.kraken.com/0/public/OHLC?pair=${par}&interval=1440&since=${sedan}`;
+  const res    = await fetch(url);
+  if (!res.ok) throw new Error(`Kraken: ${res.status}`);
+  const json   = await res.json();
+  if (json.error?.length > 0) throw new Error(json.error[0]);
+  const nyckel = Object.keys(json.result).find(k => k !== 'last');
+  return json.result[nyckel].map(p => ({
+    datum: new Date(p[0] * 1000).toISOString().slice(0, 10),
+    close: parseFloat(p[4]),
+  }));
+}
 
   // Filtrera till en punkt per dag (undviker dubbletter)
   const dagliga = [];
