@@ -12,7 +12,7 @@ const MIN_VINST = 0.03;
 const MAX_PTS   = 80;
 
 const COINGECKO = 'https://api.coingecko.com/api/v3';
-const PROXY     = 'https://corsproxy.io/?';
+const PROXY = 'https://api.allorigins.win/raw?url=';
 const COIN_IDS  = { BTCUSDT: 'bitcoin', ETHUSDT: 'ethereum' };
 
 let liveSymbol  = 'BTCUSDT';
@@ -23,7 +23,7 @@ let calcChart   = null;
 
 // ── Hjälp: bygg proxad URL ─────────────────────────────
 function proxyUrl(url) {
-  return PROXY + encodeURIComponent(url);
+  return PROXY + url;
 }
 
 // ── Indikatorer ────────────────────────────────────────
